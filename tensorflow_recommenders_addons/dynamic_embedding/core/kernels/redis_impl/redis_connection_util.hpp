@@ -153,10 +153,10 @@ struct Redis_Connection_Params {
   //
   // Below there is user-defined parameters in this custom op, not Redis
   // setting parameters
+  unsigned storage_slice_import = 1;
   unsigned storage_slice =
       1;  // For deciding bucket number, which usually is how many Redis
           // instance may be used in the trainning.
-  unsigned storage_slice_log2 = 0;  // For fast calculation.
   unsigned expire_model_tag_in_seconds =
       604800;  // To eliminate unwanted model versions in Redis to ensure
                // sufficient storage space.
@@ -202,8 +202,7 @@ struct Redis_Connection_Params {
         x.redis_sentinel_connect_timeout;  // milliseconds
     redis_sentinel_socket_timeout =
         x.redis_sentinel_socket_timeout;  // milliseconds
-    storage_slice_log2 =
-        round_next_power_two_bitlen(x.storage_slice);  // beter for modding.
+    storage_slice_import = x.storage_slice_import;
     storage_slice = x.storage_slice;
     expire_model_tag_in_seconds = x.expire_model_tag_in_seconds > 0
                                       ? x.expire_model_tag_in_seconds

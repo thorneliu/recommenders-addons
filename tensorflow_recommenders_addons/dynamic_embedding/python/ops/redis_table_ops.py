@@ -80,6 +80,8 @@ class RedisTable(LookupInterface):
       "redis_sentinel_connect_timeout": 1000,  # milliseconds
       "redis_sentinel_socket_timeout": 1000,  # milliseconds
       # Below there is user-defined parameters in this custom op, not Redis setting parameters
+      "storage_slice_import":
+          1,  # If storage_slice_import is not equal to storage_slice, rehash will happen.
       "storage_slice":
           1,  # For deciding bucket number, which usually is how many Redis instance may be used in the trainning.
       "keys_sending_size":

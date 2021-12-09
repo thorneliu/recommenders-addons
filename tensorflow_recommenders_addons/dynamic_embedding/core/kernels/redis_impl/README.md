@@ -48,6 +48,7 @@ Below is an example of a JSON file, along with comments on the corresponding pro
       "redis_sentinel_socket_timeout": 1000,  // milliseconds
 
       // Below there is user-defined parameters in this custom op, not Redis setting parameters
+      "storage_slice_import": 2, // If storage_slice_import is not equal to storage_slice, rehash will happen
       "storage_slice": 2,  // For deciding bucket number, which usually is how many Redis instance may be used in the trainning.
       "keys_sending_size": 1024,  // Determines how many keys to send at a time for performance tuning
       "using_md5_prefix_name": False,  // 1=true, 0=false

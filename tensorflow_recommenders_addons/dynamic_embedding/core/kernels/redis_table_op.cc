@@ -380,13 +380,29 @@ class RedisTableOfTensors final : public LookupInterface {
     // Rehash buckets
     if (redis_connection_params.model_tag_import ==
             redis_connection_params.model_tag_runtime &&
-        keys_prefix_name_slices_import != keys_prefix_name_slices) {
-      if (_table_instance->CheckSlicesNum(keys_prefix_name_import) == 1) {
-        LOG(INFO) << "Arrange the new Redis hash tags to the table "
-                  << keys_prefix_name_import << ". And remove the old one.";
-        auto keys_prefix_name_slices_redis =
-            _table_instance->GetKeyBucketsAndOptimizerParamsWithName(
-                keys_prefix_name_import, true);
+        (keys_prefix_name_slices_import != keys_prefix_name_slices ||
+         redis_connection_params.storage_slice_import !=
+             redis_connection_params.storage_slice)) {
+      auto keys_prefix_name_slices_redis =
+          _table_instance->GetKeyBucketsAndOptimizerParamsWithName(
+              keys_prefix_name_import, true);
+      LOG(INFO) << "Arrange the new Redis hash tags to the table "
+                << keys_prefix_name_import
+                << ". And remove the old one. Remember changing config file "
+                   "next time!";
+      if (keys_prefix_name_slices_redis.size() ==
+          redis_connection_params.storage_slice) {
+        if (keys_prefix_name_slices_redis == keys_prefix_name_slices_import) {
+          OP_REQUIRES_OK(ctx, _table_instance->DuplicateInRedis(
+                                  keys_prefix_name_slices_import,
+                                  keys_prefix_name_slices));
+          for (auto keys_prefix_name_slice_import :
+               keys_prefix_name_slices_import) {
+            OP_REQUIRES_OK(ctx, _table_instance->RemoveHkeysInBuckets(
+                                    keys_prefix_name_slice_import));
+          }
+        }
+      } else {
         if (keys_prefix_name_slices_redis != keys_prefix_name_slices_import) {
           std::stringstream warning_print;
           for (auto keys_prefix_name_slice_import :
@@ -407,16 +423,7 @@ class RedisTableOfTensors final : public LookupInterface {
                        << warning_print.str();
           keys_prefix_name_slices_import.swap(keys_prefix_name_slices_redis);
         }
-        OP_REQUIRES_OK(
-            ctx, _table_instance->DuplicateInRedis(
-                     keys_prefix_name_slices_import, keys_prefix_name_slices));
-        for (auto keys_prefix_name_slice_import :
-             keys_prefix_name_slices_import) {
-          OP_REQUIRES_OK(ctx, _table_instance->RemoveHkeysInBuckets(
-                                  keys_prefix_name_slice_import));
-        }
-      } else {
-        LOG(ERROR)
+        LOG(WARNING)
             << "The embedding table prefix name " << keys_prefix_name_import
             << " has already been saved in the Redis Servers. "
             << "And its number of slices is not equal to the number you putted "
@@ -715,6 +722,9 @@ class RedisTableOfTensors final : public LookupInterface {
             redis_connection_params.model_tag_runtime) {
           if (_table_instance->CheckSlicesNum(keys_prefix_name_import) == 1 &&
               _table_instance->CheckSlicesNum(keys_prefix_name) != 1) {
+            LOG(INFO) << "Because model_tag_import is not equal to "
+                         "model_tag_runtime. Now begin to DuplicateInRedis, "
+                         "remember changing config file next time!";
             return _table_instance->DuplicateInRedis(
                 keys_prefix_name_slices_import, keys_prefix_name_slices);
           }
