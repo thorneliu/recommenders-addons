@@ -425,6 +425,11 @@ class RedisVirtualWrapper {
       const int64 begin, const int64 max_i, const int64 Velems_per_dim0,
       const std::vector<std::string> &keys_prefix_name_slices) = 0;
 
+  virtual Status MaccumCommand(
+      const Tensor &keys, const Tensor &values, ThreadContext *thread_context,
+      const int64 begin, const int64 max_i, const int64 Velems_per_dim0,
+      const std::vector<std::string> &keys_prefix_name_slices) = 0;
+
   virtual Status DelCommand(
       const Tensor &keys, ThreadContext *thread_context, const int64 begin,
       const int64 max_i,
